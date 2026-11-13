@@ -68,6 +68,7 @@ private:
     std::vector<std::unique_ptr<SessionWrapper>> m_wrappers;
 
     OperationMode m_operatingMode = OperationMode::SharedAccess;
+    bool m_sessionLocked = false;
 
     KStatusNotifierItem *m_sni;
 };

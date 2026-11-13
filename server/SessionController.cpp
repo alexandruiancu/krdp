@@ -178,6 +178,8 @@ void SessionController::setOperationMode(OperationMode mode)
 
 void SessionController::setSessionLocked(bool locked)
 {
+    m_sessionLocked = locked;
+
     auto bus = QDBusConnection::systemBus();
     const QString service = u"org.freedesktop.login1"_s;
 
@@ -265,9 +267,12 @@ void SessionController::onNewConnection(KRdp::RdpConnection *newConnection)
                     }
                 }
                 wrapper->session->setVirtualMonitor(defaultMonitor);
-                // DAVE I kinda feel this shouldn't be here, we should message kwin which should then do this internally
-                // we also want something to prevent a VT switch breaking things
-                switchToGreeter();
+                // Only switch to greeter when the session is actually unlocked.
+                // When the session is already locked (e.g., after a previous RDP session ended),
+                // the greeter is already visible and switching again can freeze the login screen.
+                if (!m_sessionLocked) {
+                    switchToGreeter();
+                }
                 setSessionLocked(false);
                 break;
             case OperationMode::AdditionalDisplay:
@@ -286,6 +291,11 @@ void SessionController::onNewConnection(KRdp::RdpConnection *newConnection)
                              m_wrappers.end());
 
             if (m_wrappers.empty() && m_operatingMode == OperationMode::RemoteAccess) {
+                // Explicitly destroy the wrapper so the portal session is fully closed
+                // and all resources (PipeWire, EIS, etc.) are released before locking.
+                // Without this, kscreenlocker's worker hangs because the portal session
+                // is still holding resources when Lock() is called.
+                delete wrapper;
                 setSessionLocked(true);
             }
         });
