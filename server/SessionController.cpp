@@ -55,7 +55,7 @@ public:
         connect(connection->clipboard(), &KRdp::Clipboard::clientDataChanged, session.get(), [clipboard = connection->clipboard(), this]() {
             session->setClipboardData(clipboard->getClipboard());
         });
-        connect(connection, &QObject::destroyed, this, &SessionWrapper::onConnectionDestroyed);
+        connect(connection, &QObject::destroyed, this, &SessionWrapper::onConnectionDestroyed, Qt::QueuedConnection);
     }
 
     void onCursorUpdate(const PipeWireCursor &cursor)
