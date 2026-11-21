@@ -291,11 +291,6 @@ void SessionController::onNewConnection(KRdp::RdpConnection *newConnection)
                              m_wrappers.end());
 
             if (m_wrappers.empty() && m_operatingMode == OperationMode::RemoteAccess) {
-                // Explicitly destroy the wrapper so the portal session is fully closed
-                // and all resources (PipeWire, EIS, etc.) are released before locking.
-                // Without this, kscreenlocker's worker hangs because the portal session
-                // is still holding resources when Lock() is called.
-                delete wrapper;
                 setSessionLocked(true);
             }
         });
