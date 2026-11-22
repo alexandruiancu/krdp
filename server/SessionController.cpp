@@ -178,8 +178,6 @@ void SessionController::setOperationMode(OperationMode mode)
 
 void SessionController::setSessionLocked(bool locked)
 {
-    m_sessionLocked = locked;
-
     auto bus = QDBusConnection::systemBus();
     const QString service = u"org.freedesktop.login1"_s;
 
@@ -267,12 +265,9 @@ void SessionController::onNewConnection(KRdp::RdpConnection *newConnection)
                     }
                 }
                 wrapper->session->setVirtualMonitor(defaultMonitor);
-                // Only switch to greeter when the session is actually unlocked.
-                // When the session is already locked (e.g., after a previous RDP session ended),
-                // the greeter is already visible and switching again can freeze the login screen.
-                if (!m_sessionLocked) {
-                    switchToGreeter();
-                }
+                // DAVE I kinda feel this shouldn't be here, we should message kwin which should then do this internally
+                // we also want something to prevent a VT switch breaking things
+                switchToGreeter();
                 setSessionLocked(false);
                 break;
             case OperationMode::AdditionalDisplay:
